@@ -1,0 +1,52 @@
+name: Deploy VPC Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/deploy.yaml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-west-2
+  STACK_NAME: NetworkStack
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Template
+        run: |
+          aws cloudformation validate-template \
+            --template-body file://infra/vpc-main.yaml \
+            --region ${{ env.AWS_REGION }}
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: 
+      name: production
+      url: https://${{ env.AWS_REGION }}.console.aws.amazon.com/cloudformation/home?region=${{ env.AWS_REGION }}#/stacks/stackinfo?stackId=${{ env.STACK_NAME }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Stack
+        run: |
+          ./scripts/deploy-stack.sh \
+            --stack ${{ env.STACK_NAME }} \
+            --template infra/vpc-main.yaml \
+            --params infra/vpc-params.json \
+            --region ${{ env.AWS_REGION }}
