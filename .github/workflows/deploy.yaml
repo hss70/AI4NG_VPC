@@ -52,7 +52,7 @@ jobs:
 
       - name: Deploy Stack
         run: |
-        chmod +x ./scripts/deploy-stack.sh
+          chmod +x ./scripts/deploy-stack.sh
           ./scripts/deploy-stack.sh \
             --stack ${{ env.STACK_NAME }} \
             --template infra/vpc-main.yaml \
