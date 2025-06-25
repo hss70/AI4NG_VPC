@@ -145,6 +145,22 @@ Resources:
         - Key: Name
           Value: ECRDKREndpoint
 
+  CloudWatchLogsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
+      VpcId: !Ref PrivateVPC
+      VpcEndpointType: Interface
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref VPCInterfaceEndpointSG
+      PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: CloudWatchLogsEndpoint
+
   PrivateSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -163,11 +179,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 52.95.128.0/21
+          CidrIp: 3.5.0.0/16
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 52.95.191.0/24
+          CidrIp: 52.95.0.0/16
       Tags:
         - Key: Name
           Value: PrivateSG
@@ -235,3 +251,9 @@ Outputs:
     Value: !Ref ECRDKREndpoint
     Export:
       Name: !Sub "${AWS::StackName}-ECRDKREndpoint"
+
+  CloudWatchLogsEndpointId:
+    Description: CloudWatch Logs Endpoint ID
+    Value: !Ref CloudWatchLogsEndpoint
+    Export:
+      Name: !Sub "${AWS::StackName}-CloudWatchLogsEndpoint"
